@@ -198,6 +198,14 @@ namespace CI_Satena
                 ResponseRoutes = reader.ReadToEnd();
             }
             // Parse Options
+
+            // Parsing Response Routes
+            HtmlDocument HtmlRoutes = new HtmlDocument();
+            HtmlRoutes.LoadHtml(ResponseRoutes);
+            var RouteTable = HtmlRoutes.DocumentNode.SelectSingleNode("//table[@class='tabla2']");
+            string FlightDeparture = RouteTable.SelectSingleNode("/table[1]/tr[2]/td[1]/div[1]/span[1]").InnerText.ToString();
+            string FlightArrival = RouteTable.SelectSingleNode("/table[1]/tr[2]/td[1]/div[1]/span[2]").InnerText.ToString();
+            string FlightNumber = RouteTable.SelectSingleNode("/table[1]/tr[2]/td[1]/div[3]/span[1]").InnerText.ToString();
         }
 
 
