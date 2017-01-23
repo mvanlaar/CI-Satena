@@ -22,11 +22,7 @@ namespace CI_Satena
             List<AirportDef> _AirportsFrom = new List<AirportDef> { };
             List<AirportDef> _AirportsTo = new List<AirportDef> { };
             List<CIFLight> CIFLights = new List<CIFLight> { };
-
-
-            CookieContainer cookieContainer = new CookieContainer();
-            CookieCollection cookieCollection = new CookieCollection();
-
+            
             Regex rgxIATAAirport = new Regex(@"([A-Z]{3})");
           
             const string ua = "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko";
@@ -88,6 +84,8 @@ namespace CI_Satena
             {
                 foreach (var To in _AirportsTo)
                 {
+                    //Parallel.ForEach(_AirportsTo, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (To) =>
+                    //{
                     if (From.IATA != To.IATA)
                     {
                         // Response Variables
@@ -95,6 +93,10 @@ namespace CI_Satena
                         string ResponseIndex = String.Empty;
                         string ResponseDias = String.Empty;
                         string ResponseRoutes = String.Empty;
+                        CookieContainer cookieContainer = new CookieContainer();
+                        CookieCollection cookieCollection = new CookieCollection();
+
+                        Console.WriteLine("{0} - {1}", From.Name, To.Name);
 
                         DateTime dateAndTime = DateTime.Now;
                         //dateAndTime = dateAndTime.AddDays(Day);
@@ -125,7 +127,7 @@ namespace CI_Satena
                             ResponseIndex = reader.ReadToEnd();
                         }
                         //trayecto=ida&origen=BOGOTA+-+BOG&origenesIata=+BOG&destino=IPIALES+-+IPI&destinosIata=+IPI&fdesde=31%2F01%2F2017&fhasta=&mayores=1&menores=0&infantes=0&consultar=1
-                        Console.WriteLine("Fill in the form....");
+                        //Console.WriteLine("Fill in the form....");
                         // Fill in the form session
                         request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
 
@@ -153,7 +155,7 @@ namespace CI_Satena
                         }
                         // Posting dias
 
-                        Console.WriteLine("Post for days details...");
+                        //Console.WriteLine("Post for days details...");
                         request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
 
                         var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
@@ -180,7 +182,7 @@ namespace CI_Satena
                             ResponseDias = reader.ReadToEnd();
                         }
                         // Parse Routes
-                        Console.WriteLine("Post for route details...");
+                        //Console.WriteLine("Post for route details...");
                         request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
 
                         var postDataRoutes = String.Format("tipoViaje=ida&accion=getRespuesta");
@@ -216,6 +218,9 @@ namespace CI_Satena
                             string FlightDeparture = RouteTable.SelectSingleNode("/table[1]/tr[2]/td[1]/div[1]/span[1]").InnerText.ToString();
                             string FlightArrival = RouteTable.SelectSingleNode("/table[1]/tr[2]/td[1]/div[1]/span[2]").InnerText.ToString();
                             string TEMP_FlightNumber = RouteTable.SelectSingleNode("/table[1]/tr[2]/td[1]/div[3]/span[1]").InnerText.ToString();
+                            int start = TEMP_FlightNumber.IndexOf("(") + 1;
+                            int end = TEMP_FlightNumber.IndexOf(")", start);
+                            TEMP_FlightNumber = TEMP_FlightNumber.Substring(start, end - start);
                             Boolean TEMP_FlightMonday = false;
                             Boolean TEMP_FlightTuesday = false;
                             Boolean TEMP_FlightWednesday = false;
@@ -280,6 +285,7 @@ namespace CI_Satena
                             }
                         }
                     }
+                    //});
                 }
             }
             // Export XML
