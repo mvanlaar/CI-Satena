@@ -301,7 +301,7 @@ namespace CI_Satena
             file.Close();
 
         }
-
+        [Serializable]
         public class CIFLight
         {
             // Auto-implemented properties. 
