@@ -33,7 +33,7 @@ namespace CI_Satena
             Regex rgxIATAAirport = new Regex(@"([A-Z]{3})");
           
             const string ua = "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko";
-            const string HeaderAccept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+            const string HeaderAccept = "text/html,application/xhtml+xml,application/xml;q=0.9,*;q=0.8";
             const string HeaderEncoding = "gzip,deflate";
             string Frontpage = String.Empty;
             //BrowserSession b = new BrowserSession();
@@ -93,8 +93,12 @@ namespace CI_Satena
                 {
                     //Parallel.ForEach(_AirportsTo, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (To) =>
                     //{
+                    // Only ADZ to PVA AND back
+                    if (From.IATA == "ÄDZ" & To.IATA != "PVA") { break; }
+                    if (From.IATA == "PVA" & To.IATA != "ADZ") { break; }
+
                     if (From.IATA != To.IATA)
-                    {
+                    {  
                         // Response Variables
                         string ResponseForm = String.Empty;
                         string ResponseIndex = String.Empty;
@@ -163,31 +167,32 @@ namespace CI_Satena
                         // Posting dias
 
                         //Console.WriteLine("Post for days details...");
-                        request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
 
-                        var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
-                        var dataDias = Encoding.ASCII.GetBytes(postDataDias);
+                        //request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
 
-                        request.Method = "POST";
-                        request.ContentType = "application/x-www-form-urlencoded";
-                        request.ContentLength = dataDias.Length;
-                        request.UserAgent = ua;
-                        request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
-                        request.Headers.Add("Accept-Encoding", HeaderEncoding);
-                        request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                        request.Accept = "*/*";
-                        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                        request.CookieContainer = cookieContainer;
+                        //var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
+                        //var dataDias = Encoding.ASCII.GetBytes(postDataDias);
 
-                        using (var streamDias = request.GetRequestStream())
-                        {
-                            streamDias.Write(dataDias, 0, dataDias.Length);
-                        }
-                        using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
-                        using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
-                        {
-                            ResponseDias = reader.ReadToEnd();
-                        }
+                        //request.Method = "POST";
+                        //request.ContentType = "application/x-www-form-urlencoded";
+                        //request.ContentLength = dataDias.Length;
+                        //request.UserAgent = ua;
+                        //request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
+                        //request.Headers.Add("Accept-Encoding", HeaderEncoding);
+                        //request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                        //request.Accept = "*/*";
+                        //request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                        //request.CookieContainer = cookieContainer;
+
+                        //using (var streamDias = request.GetRequestStream())
+                        //{
+                        //    streamDias.Write(dataDias, 0, dataDias.Length);
+                        //}
+                        //using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                        //using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
+                        //{
+                        //    ResponseDias = reader.ReadToEnd();
+                        //}
                         // Parse Routes
                         //Console.WriteLine("Post for route details...");
                         request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
@@ -202,7 +207,7 @@ namespace CI_Satena
                         request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
                         request.Headers.Add("Accept-Encoding", HeaderEncoding);
                         request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                        request.Accept = "*/*";
+                        request.Accept = "*";
                         request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                         request.CookieContainer = cookieContainer;
 
