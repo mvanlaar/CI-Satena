@@ -376,7 +376,6 @@ namespace CI_Satena
                         csv.WriteField("");
                         csv.WriteField("");
                         csv.NextRecord();
-
                     }
                 }
             }
