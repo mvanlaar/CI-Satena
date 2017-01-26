@@ -20,7 +20,7 @@ namespace CI_Satena
     {
         static void Main(string[] args)
         {
-            
+
             List<AirportDef> _AirportsFrom = new List<AirportDef> { };
             List<AirportDef> _AirportsTo = new List<AirportDef> { };
             List<CIFLight> CIFLights = new List<CIFLight> { };
@@ -47,9 +47,14 @@ namespace CI_Satena
                 webClient1.Headers.Add("Accept-Encoding", HeaderEncoding);
                 webClient1.Headers.Add("Accept", HeaderAccept);                
                 var responseStream = new GZipStream(webClient1.OpenRead("https://secure.kiusys.net/satena-ibe/buscar.php"), CompressionMode.Decompress);
-                var reader = new StreamReader(responseStream);
-                var textResponse = reader.ReadToEnd();
-                Frontpage = textResponse;
+                //using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                using (StreamReader reader = new StreamReader(responseStream))
+                {
+                    Frontpage = reader.ReadToEnd();
+                }
+                //var reader = new StreamReader(responseStream);
+                //var textResponse = reader.ReadToEnd();
+                //Frontpage = textResponse;
             }
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(Frontpage);
@@ -94,8 +99,8 @@ namespace CI_Satena
                     //Parallel.ForEach(_AirportsTo, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (To) =>
                     //{
                     // Only ADZ to PVA AND back
-                    if (From.IATA == "ÄDZ" & To.IATA != "PVA") { break; }
-                    if (From.IATA == "PVA" & To.IATA != "ADZ") { break; }
+                    //if (From.IATA == "ÄDZ" & To.IATA != "PVA") { break; }
+                    //if (From.IATA == "PVA" & To.IATA != "ADZ") { break; }
 
                     if (From.IATA != To.IATA)
                     {  
@@ -127,6 +132,7 @@ namespace CI_Satena
                         request.Accept = HeaderAccept;
                         request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                         request.CookieContainer = cookieContainer;
+                        request.Proxy = null;
 
                         using (var streamIndex = request.GetRequestStream())
                         {
@@ -154,6 +160,7 @@ namespace CI_Satena
                         request.Accept = HeaderAccept;
                         request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                         request.CookieContainer = cookieContainer;
+                        request.Proxy = null;
 
                         using (var streamPage = request.GetRequestStream())
                         {
@@ -210,6 +217,7 @@ namespace CI_Satena
                         request.Accept = "*";
                         request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                         request.CookieContainer = cookieContainer;
+                        request.Proxy = null;
 
                         using (var streamRoutes = request.GetRequestStream())
                         {
