@@ -99,221 +99,224 @@ namespace CI_Satena
                     //Parallel.ForEach(_AirportsTo, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (To) =>
                     //{
                     // Only ADZ to PVA AND back
-                    //if (From.IATA == "ÄDZ" & To.IATA != "PVA") { break; }
-                    //if (From.IATA == "PVA" & To.IATA != "ADZ") { break; }
+                    if (From.IATA == "ÄDZ" & To.IATA != "PVA") { break; }
+                    if (From.IATA == "PVA" & To.IATA != "ADZ") { break; }
 
                     if (From.IATA != To.IATA)
-                    {  
-                        // Response Variables
-                        string ResponseForm = String.Empty;
-                        string ResponseIndex = String.Empty;
-                        string ResponseDias = String.Empty;
-                        string ResponseRoutes = String.Empty;
-                        CookieContainer cookieContainer = new CookieContainer();
-                        CookieCollection cookieCollection = new CookieCollection();
-
-                        Console.WriteLine("{0} - {1}", From.Name, To.Name);
-
-                        DateTime dateAndTime = DateTime.Now;
-                        //dateAndTime = dateAndTime.AddDays(Day);
-
-
-                        HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/index.php");
-
-                        var postDataIndex = String.Format("origen={0}&destino={1}&adultos=1&menores=0&infantes=0&fdesde={2}&fhasta=&trayecto=ida&accion=validar", From.Value, To.Value, dateAndTime.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture));
-                        var dataIndex = Encoding.ASCII.GetBytes(postDataIndex);
-
-                        request.Method = "POST";
-                        request.ContentType = "application/x-www-form-urlencoded";
-                        request.ContentLength = dataIndex.Length;
-                        request.UserAgent = ua;
-                        request.Referer = "https://secure.kiusys.net/satena-ibe/buscar.php";
-                        request.Headers.Add("Accept-Encoding", HeaderEncoding);
-                        request.Accept = HeaderAccept;
-                        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                        request.CookieContainer = cookieContainer;
-                        request.Proxy = null;
-
-                        using (var streamIndex = request.GetRequestStream())
+                    {
+                        for (int i = 0; i < 30; i++)
                         {
-                            streamIndex.Write(dataIndex, 0, dataIndex.Length);
-                        }
-                        using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
-                        using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
-                        {
-                            ResponseIndex = reader.ReadToEnd();
-                        }
-                        //trayecto=ida&origen=BOGOTA+-+BOG&origenesIata=+BOG&destino=IPIALES+-+IPI&destinosIata=+IPI&fdesde=31%2F01%2F2017&fhasta=&mayores=1&menores=0&infantes=0&consultar=1
-                        //Console.WriteLine("Fill in the form....");
-                        // Fill in the form session
-                        request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
+                            // Response Variables
+                            string ResponseForm = String.Empty;
+                            string ResponseIndex = String.Empty;
+                            string ResponseDias = String.Empty;
+                            string ResponseRoutes = String.Empty;
+                            CookieContainer cookieContainer = new CookieContainer();
+                            CookieCollection cookieCollection = new CookieCollection();
 
-                        var postData = String.Format("trayecto=ida&origen={0}&origenesIata={1}&destino={2}&destinosIata={3}&fdesde={4}&fhasta=&mayores=1&menores=0&infantes=0&consultar=1", HttpUtility.UrlEncode(From.FullName), HttpUtility.UrlEncode(From.Value), HttpUtility.UrlEncode(To.FullName), HttpUtility.UrlEncode(To.Value), HttpUtility.UrlEncode(dateAndTime.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)));
-                        var data = Encoding.ASCII.GetBytes(postData);
+                            
 
-                        request.Method = "POST";
-                        request.ContentType = "application/x-www-form-urlencoded";
-                        request.ContentLength = data.Length;
-                        request.UserAgent = ua;
-                        request.Referer = "https://secure.kiusys.net/satena-ibe/buscar.php";
-                        request.Headers.Add("Accept-Encoding", HeaderEncoding);
-                        request.Accept = HeaderAccept;
-                        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                        request.CookieContainer = cookieContainer;
-                        request.Proxy = null;
+                            DateTime dateAndTime = DateTime.Now;
+                            dateAndTime = dateAndTime.AddDays(i);
+                            Console.WriteLine("{0} - {1} - {2}", From.Name, To.Name, dateAndTime.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture).ToString());
 
-                        using (var streamPage = request.GetRequestStream())
-                        {
-                            streamPage.Write(data, 0, data.Length);
-                        }
-                        using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
-                        using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
-                        {
-                            ResponseForm = reader.ReadToEnd();
-                        }
-                        // Posting dias
+                            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/index.php");
 
-                        //Console.WriteLine("Post for days details...");
+                            var postDataIndex = String.Format("origen={0}&destino={1}&adultos=1&menores=0&infantes=0&fdesde={2}&fhasta=&trayecto=ida&accion=validar", From.Value, To.Value, dateAndTime.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture));
+                            var dataIndex = Encoding.ASCII.GetBytes(postDataIndex);
 
-                        //request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
+                            request.Method = "POST";
+                            request.ContentType = "application/x-www-form-urlencoded";
+                            request.ContentLength = dataIndex.Length;
+                            request.UserAgent = ua;
+                            request.Referer = "https://secure.kiusys.net/satena-ibe/buscar.php";
+                            request.Headers.Add("Accept-Encoding", HeaderEncoding);
+                            request.Accept = HeaderAccept;
+                            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                            request.CookieContainer = cookieContainer;
+                            request.Proxy = null;
 
-                        //var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
-                        //var dataDias = Encoding.ASCII.GetBytes(postDataDias);
-
-                        //request.Method = "POST";
-                        //request.ContentType = "application/x-www-form-urlencoded";
-                        //request.ContentLength = dataDias.Length;
-                        //request.UserAgent = ua;
-                        //request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
-                        //request.Headers.Add("Accept-Encoding", HeaderEncoding);
-                        //request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                        //request.Accept = "*/*";
-                        //request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                        //request.CookieContainer = cookieContainer;
-
-                        //using (var streamDias = request.GetRequestStream())
-                        //{
-                        //    streamDias.Write(dataDias, 0, dataDias.Length);
-                        //}
-                        //using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
-                        //using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
-                        //{
-                        //    ResponseDias = reader.ReadToEnd();
-                        //}
-                        // Parse Routes
-                        //Console.WriteLine("Post for route details...");
-                        request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
-
-                        var postDataRoutes = String.Format("tipoViaje=ida&accion=getRespuesta");
-                        var dataRoutes = Encoding.ASCII.GetBytes(postDataRoutes);
-
-                        request.Method = "POST";
-                        request.ContentType = "application/x-www-form-urlencoded";
-                        request.ContentLength = dataRoutes.Length;
-                        request.UserAgent = ua;
-                        request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
-                        request.Headers.Add("Accept-Encoding", HeaderEncoding);
-                        request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                        request.Accept = "*";
-                        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                        request.CookieContainer = cookieContainer;
-                        request.Proxy = null;
-
-                        using (var streamRoutes = request.GetRequestStream())
-                        {
-                            streamRoutes.Write(dataRoutes, 0, dataRoutes.Length);
-                        }
-                        using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
-                        using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
-                        {
-                            ResponseRoutes = reader.ReadToEnd();
-                        }
-                        // Parse Options
-                        if (!ResponseRoutes.Contains("No hay vuelos"))
-                        {
-                            using (StreamWriter writetext = new StreamWriter(myDirData + "\\" + To.IATA + " - " + From.IATA + ".txt"))
+                            using (var streamIndex = request.GetRequestStream())
                             {
-                                writetext.Write(ResponseRoutes);
+                                streamIndex.Write(dataIndex, 0, dataIndex.Length);
                             }
-
-                            // Parsing Response Routes
-                            HtmlDocument HtmlRoutes = new HtmlDocument();
-                            HtmlRoutes.LoadHtml(ResponseRoutes);
-                            var RouteTable = HtmlRoutes.DocumentNode.SelectNodes("//table[@class='tabla2']//tr");
-                            foreach (var Route in RouteTable)
+                            using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                            using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
                             {
-                                if (Route.SelectSingleNode("./td//div") != null)
+                                ResponseIndex = reader.ReadToEnd();
+                            }
+                            //trayecto=ida&origen=BOGOTA+-+BOG&origenesIata=+BOG&destino=IPIALES+-+IPI&destinosIata=+IPI&fdesde=31%2F01%2F2017&fhasta=&mayores=1&menores=0&infantes=0&consultar=1
+                            //Console.WriteLine("Fill in the form....");
+                            // Fill in the form session
+                            request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
+
+                            var postData = String.Format("trayecto=ida&origen={0}&origenesIata={1}&destino={2}&destinosIata={3}&fdesde={4}&fhasta=&mayores=1&menores=0&infantes=0&consultar=1", HttpUtility.UrlEncode(From.FullName), HttpUtility.UrlEncode(From.Value), HttpUtility.UrlEncode(To.FullName), HttpUtility.UrlEncode(To.Value), HttpUtility.UrlEncode(dateAndTime.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)));
+                            var data = Encoding.ASCII.GetBytes(postData);
+
+                            request.Method = "POST";
+                            request.ContentType = "application/x-www-form-urlencoded";
+                            request.ContentLength = data.Length;
+                            request.UserAgent = ua;
+                            request.Referer = "https://secure.kiusys.net/satena-ibe/buscar.php";
+                            request.Headers.Add("Accept-Encoding", HeaderEncoding);
+                            request.Accept = HeaderAccept;
+                            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                            request.CookieContainer = cookieContainer;
+                            request.Proxy = null;
+
+                            using (var streamPage = request.GetRequestStream())
+                            {
+                                streamPage.Write(data, 0, data.Length);
+                            }
+                            using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                            using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
+                            {
+                                ResponseForm = reader.ReadToEnd();
+                            }
+                            // Posting dias
+
+                            //Console.WriteLine("Post for days details...");
+
+                            //request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
+
+                            //var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
+                            //var dataDias = Encoding.ASCII.GetBytes(postDataDias);
+
+                            //request.Method = "POST";
+                            //request.ContentType = "application/x-www-form-urlencoded";
+                            //request.ContentLength = dataDias.Length;
+                            //request.UserAgent = ua;
+                            //request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
+                            //request.Headers.Add("Accept-Encoding", HeaderEncoding);
+                            //request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                            //request.Accept = "*/*";
+                            //request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                            //request.CookieContainer = cookieContainer;
+
+                            //using (var streamDias = request.GetRequestStream())
+                            //{
+                            //    streamDias.Write(dataDias, 0, dataDias.Length);
+                            //}
+                            //using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                            //using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
+                            //{
+                            //    ResponseDias = reader.ReadToEnd();
+                            //}
+                            // Parse Routes
+                            //Console.WriteLine("Post for route details...");
+                            request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
+
+                            var postDataRoutes = String.Format("tipoViaje=ida&accion=getRespuesta");
+                            var dataRoutes = Encoding.ASCII.GetBytes(postDataRoutes);
+
+                            request.Method = "POST";
+                            request.ContentType = "application/x-www-form-urlencoded";
+                            request.ContentLength = dataRoutes.Length;
+                            request.UserAgent = ua;
+                            request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
+                            request.Headers.Add("Accept-Encoding", HeaderEncoding);
+                            request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                            request.Accept = "*";
+                            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                            request.CookieContainer = cookieContainer;
+                            request.Proxy = null;
+
+                            using (var streamRoutes = request.GetRequestStream())
+                            {
+                                streamRoutes.Write(dataRoutes, 0, dataRoutes.Length);
+                            }
+                            using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                            using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
+                            {
+                                ResponseRoutes = reader.ReadToEnd();
+                            }
+                            // Parse Options
+                            if (!ResponseRoutes.Contains("No hay vuelos"))
+                            {
+                                using (StreamWriter writetext = new StreamWriter(myDirData + "\\" + To.IATA + " - " + From.IATA + ".txt"))
                                 {
-                                    string FlightDeparture = Route.SelectSingleNode("./td[1]/div[1]/span[1]").InnerText.ToString();
-                                    string FlightArrival = Route.SelectSingleNode("./td[1]/div[1]/span[2]").InnerText.ToString();
-                                    string TEMP_FlightNumber = Route.SelectSingleNode("./td[1]/div[3]/span[1]").InnerText.ToString();
-                                    int start = TEMP_FlightNumber.IndexOf("(") + 1;
-                                    int end = TEMP_FlightNumber.IndexOf(")", start);
-                                    TEMP_FlightNumber = TEMP_FlightNumber.Substring(start, end - start);
-                                    Boolean TEMP_FlightMonday = false;
-                                    Boolean TEMP_FlightTuesday = false;
-                                    Boolean TEMP_FlightWednesday = false;
-                                    Boolean TEMP_FlightThursday = false;
-                                    Boolean TEMP_FlightFriday = false;
-                                    Boolean TEMP_FlightSaterday = false;
-                                    Boolean TEMP_FlightSunday = false;
-
-                                    int dayofweek = Convert.ToInt32(dateAndTime.DayOfWeek);
-                                    if (dayofweek == 0) { TEMP_FlightSunday = true; }
-                                    if (dayofweek == 1) { TEMP_FlightMonday = true; }
-                                    if (dayofweek == 2) { TEMP_FlightTuesday = true; }
-                                    if (dayofweek == 3) { TEMP_FlightWednesday = true; }
-                                    if (dayofweek == 4) { TEMP_FlightThursday = true; }
-                                    if (dayofweek == 5) { TEMP_FlightFriday = true; }
-                                    if (dayofweek == 6) { TEMP_FlightSaterday = true; }
-
-                                    // Add Flight to CIFlights
-                                    bool alreadyExists = CIFLights.Exists(x => x.FromIATA == From.IATA
-                                        && x.ToIATA == To.IATA
-                                        && x.FromDate == dateAndTime.Date
-                                        && x.ToDate == dateAndTime.Date
-                                        && x.FlightNumber == TEMP_FlightNumber
-                                        && x.ArrivalTime == DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture)
-                                        && x.DepartTime == DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture)
-                                        && x.FlightAirline == "9R"
-                                        && x.FlightMonday == TEMP_FlightMonday
-                                        && x.FlightTuesday == TEMP_FlightTuesday
-                                        && x.FlightWednesday == TEMP_FlightWednesday
-                                        && x.FlightThursday == TEMP_FlightThursday
-                                        && x.FlightFriday == TEMP_FlightFriday
-                                        && x.FlightSaterday == TEMP_FlightSaterday
-                                        && x.FlightSunday == TEMP_FlightSunday);
-
-
-                                    if (!alreadyExists)
-                                    {
-                                        // don't add flights that already exists
-                                        CIFLights.Add(new CIFLight
-                                        {
-                                            FromIATA = From.IATA,
-                                            ToIATA = To.IATA,
-                                            FromDate = dateAndTime.Date,
-                                            ToDate = dateAndTime.Date,
-                                            ArrivalTime = DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture),
-                                            DepartTime = DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture),
-                                            //FlightAircraft = "A320",
-                                            FlightAirline = "9R",
-                                            FlightMonday = TEMP_FlightMonday,
-                                            FlightTuesday = TEMP_FlightTuesday,
-                                            FlightWednesday = TEMP_FlightWednesday,
-                                            FlightThursday = TEMP_FlightThursday,
-                                            FlightFriday = TEMP_FlightFriday,
-                                            FlightSaterday = TEMP_FlightSaterday,
-                                            FlightSunday = TEMP_FlightSunday,
-                                            FlightNumber = TEMP_FlightNumber
-                                            //FlightOperator = null,
-                                            //FlightCodeShare = TEMP_FlightCodeShare,
-                                            //FlightNextDayArrival = TEMP_FlightNextDayArrival,
-                                            //FlightNextDays = TEMP_FlightNextDays
-                                        });
-                                    }
+                                    writetext.Write(ResponseRoutes);
                                 }
-                                
+
+                                // Parsing Response Routes
+                                HtmlDocument HtmlRoutes = new HtmlDocument();
+                                HtmlRoutes.LoadHtml(ResponseRoutes);
+                                var RouteTable = HtmlRoutes.DocumentNode.SelectNodes("//table[@class='tabla2']//tr");
+                                foreach (var Route in RouteTable)
+                                {
+                                    if (Route.SelectSingleNode("./td//div") != null)
+                                    {
+                                        string FlightDeparture = Route.SelectSingleNode("./td[1]/div[1]/span[1]").InnerText.ToString();
+                                        string FlightArrival = Route.SelectSingleNode("./td[1]/div[1]/span[2]").InnerText.ToString();
+                                        string TEMP_FlightNumber = Route.SelectSingleNode("./td[1]/div[3]/span[1]").InnerText.ToString();
+                                        int start = TEMP_FlightNumber.IndexOf("(") + 1;
+                                        int end = TEMP_FlightNumber.IndexOf(")", start);
+                                        TEMP_FlightNumber = TEMP_FlightNumber.Substring(start, end - start);
+                                        Boolean TEMP_FlightMonday = false;
+                                        Boolean TEMP_FlightTuesday = false;
+                                        Boolean TEMP_FlightWednesday = false;
+                                        Boolean TEMP_FlightThursday = false;
+                                        Boolean TEMP_FlightFriday = false;
+                                        Boolean TEMP_FlightSaterday = false;
+                                        Boolean TEMP_FlightSunday = false;
+
+                                        int dayofweek = Convert.ToInt32(dateAndTime.DayOfWeek);
+                                        if (dayofweek == 0) { TEMP_FlightSunday = true; }
+                                        if (dayofweek == 1) { TEMP_FlightMonday = true; }
+                                        if (dayofweek == 2) { TEMP_FlightTuesday = true; }
+                                        if (dayofweek == 3) { TEMP_FlightWednesday = true; }
+                                        if (dayofweek == 4) { TEMP_FlightThursday = true; }
+                                        if (dayofweek == 5) { TEMP_FlightFriday = true; }
+                                        if (dayofweek == 6) { TEMP_FlightSaterday = true; }
+
+                                        // Add Flight to CIFlights
+                                        bool alreadyExists = CIFLights.Exists(x => x.FromIATA == From.IATA
+                                            && x.ToIATA == To.IATA
+                                            && x.FromDate == dateAndTime.Date
+                                            && x.ToDate == dateAndTime.Date
+                                            && x.FlightNumber == TEMP_FlightNumber
+                                            && x.ArrivalTime == DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture)
+                                            && x.DepartTime == DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture)
+                                            && x.FlightAirline == "9R"
+                                            && x.FlightMonday == TEMP_FlightMonday
+                                            && x.FlightTuesday == TEMP_FlightTuesday
+                                            && x.FlightWednesday == TEMP_FlightWednesday
+                                            && x.FlightThursday == TEMP_FlightThursday
+                                            && x.FlightFriday == TEMP_FlightFriday
+                                            && x.FlightSaterday == TEMP_FlightSaterday
+                                            && x.FlightSunday == TEMP_FlightSunday);
+
+
+                                        if (!alreadyExists)
+                                        {
+                                            // don't add flights that already exists
+                                            CIFLights.Add(new CIFLight
+                                            {
+                                                FromIATA = From.IATA,
+                                                ToIATA = To.IATA,
+                                                FromDate = dateAndTime.Date,
+                                                ToDate = dateAndTime.Date,
+                                                ArrivalTime = DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture),
+                                                DepartTime = DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture),
+                                                //FlightAircraft = "A320",
+                                                FlightAirline = "9R",
+                                                FlightMonday = TEMP_FlightMonday,
+                                                FlightTuesday = TEMP_FlightTuesday,
+                                                FlightWednesday = TEMP_FlightWednesday,
+                                                FlightThursday = TEMP_FlightThursday,
+                                                FlightFriday = TEMP_FlightFriday,
+                                                FlightSaterday = TEMP_FlightSaterday,
+                                                FlightSunday = TEMP_FlightSunday,
+                                                FlightNumber = TEMP_FlightNumber
+                                                //FlightOperator = null,
+                                                //FlightCodeShare = TEMP_FlightCodeShare,
+                                                //FlightNextDayArrival = TEMP_FlightNextDayArrival,
+                                                //FlightNextDays = TEMP_FlightNextDays
+                                            });
+                                        }
+                                    }
+
+                                }
                             }
                         }
                     }
@@ -358,13 +361,13 @@ namespace CI_Satena
 
                 var airlines = CIFLights.Select(m => new { m.FlightAirline }).Distinct().ToList();
 
-                for (int i = 0; i < airlines.Count; i++) // Loop through List with for)
-                {
+                //for (int i = 0; i < airlines.Count; i++) // Loop through List with for)
+                //{
                     using (var client = new WebClient())
                     {
                         client.Encoding = Encoding.UTF8;
                         client.Headers.Add("user-agent", ua);
-                        string urlapi = ConfigurationManager.AppSettings.Get("APIUrl") + APIPathAirline + airlines[i].FlightAirline;
+                        string urlapi = ConfigurationManager.AppSettings.Get("APIUrl") + APIPathAirline + airlines[0].FlightAirline.Trim();
                         var jsonapi = client.DownloadString(urlapi);
                         dynamic AirlineResponseJson = JsonConvert.DeserializeObject(jsonapi);
                         csv.WriteField(Convert.ToString(AirlineResponseJson[0].code));
@@ -375,9 +378,9 @@ namespace CI_Satena
                         csv.WriteField(Convert.ToString(AirlineResponseJson[0].phone));
                         csv.WriteField("");
                         csv.WriteField("");
-                        csv.NextRecord();
+                        csv.NextRecord();                       
                     }
-                }
+                //}
             }
 
             Console.WriteLine("Creating GTFS File routes.txt ...");
@@ -604,7 +607,7 @@ namespace CI_Satena
 
                             // Calender
 
-                            csvcalendar.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate));
+                            csvcalendar.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightAirline + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate) + Convert.ToInt32(CIFLights[i].FlightMonday) + Convert.ToInt32(CIFLights[i].FlightTuesday) + Convert.ToInt32(CIFLights[i].FlightWednesday) + Convert.ToInt32(CIFLights[i].FlightThursday) + Convert.ToInt32(CIFLights[i].FlightFriday) + Convert.ToInt32(CIFLights[i].FlightSaterday) + Convert.ToInt32(CIFLights[i].FlightSunday));
                             csvcalendar.WriteField(Convert.ToInt32(CIFLights[i].FlightMonday));
                             csvcalendar.WriteField(Convert.ToInt32(CIFLights[i].FlightTuesday));
                             csvcalendar.WriteField(Convert.ToInt32(CIFLights[i].FlightWednesday));
@@ -636,8 +639,8 @@ namespace CI_Satena
                                 ToAirportName = Convert.ToString(AirportResponseJson[0].name);
                             }
                             csvtrips.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA);
-                            csvtrips.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate));
-                            csvtrips.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightNumber.Replace(" ", ""));
+                            csvtrips.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightAirline + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate) + Convert.ToInt32(CIFLights[i].FlightMonday) + Convert.ToInt32(CIFLights[i].FlightTuesday) + Convert.ToInt32(CIFLights[i].FlightWednesday) + Convert.ToInt32(CIFLights[i].FlightThursday) + Convert.ToInt32(CIFLights[i].FlightFriday) + Convert.ToInt32(CIFLights[i].FlightSaterday) + Convert.ToInt32(CIFLights[i].FlightSunday));
+                            csvtrips.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightAirline + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate) + Convert.ToInt32(CIFLights[i].FlightMonday) + Convert.ToInt32(CIFLights[i].FlightTuesday) + Convert.ToInt32(CIFLights[i].FlightWednesday) + Convert.ToInt32(CIFLights[i].FlightThursday) + Convert.ToInt32(CIFLights[i].FlightFriday) + Convert.ToInt32(CIFLights[i].FlightSaterday) + Convert.ToInt32(CIFLights[i].FlightSunday));
                             csvtrips.WriteField(ToAirportName);
                             csvtrips.WriteField(CIFLights[i].FlightNumber);
                             csvtrips.WriteField("");
@@ -648,7 +651,7 @@ namespace CI_Satena
                             csvtrips.NextRecord();
 
                             // Depart Record
-                            csvstoptimes.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightNumber.Replace(" ", ""));
+                            csvstoptimes.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightAirline + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate) + Convert.ToInt32(CIFLights[i].FlightMonday) + Convert.ToInt32(CIFLights[i].FlightTuesday) + Convert.ToInt32(CIFLights[i].FlightWednesday) + Convert.ToInt32(CIFLights[i].FlightThursday) + Convert.ToInt32(CIFLights[i].FlightFriday) + Convert.ToInt32(CIFLights[i].FlightSaterday) + Convert.ToInt32(CIFLights[i].FlightSunday));
                             csvstoptimes.WriteField(String.Format("{0:HH:mm:ss}", CIFLights[i].DepartTime));
                             csvstoptimes.WriteField(String.Format("{0:HH:mm:ss}", CIFLights[i].DepartTime));
                             csvstoptimes.WriteField(CIFLights[i].FromIATA);
@@ -664,7 +667,7 @@ namespace CI_Satena
                             // Arrival Record
                             if (!CIFLights[i].FlightNextDayArrival)
                             {
-                                csvstoptimes.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightNumber.Replace(" ", ""));
+                                csvstoptimes.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightAirline + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate) + Convert.ToInt32(CIFLights[i].FlightMonday) + Convert.ToInt32(CIFLights[i].FlightTuesday) + Convert.ToInt32(CIFLights[i].FlightWednesday) + Convert.ToInt32(CIFLights[i].FlightThursday) + Convert.ToInt32(CIFLights[i].FlightFriday) + Convert.ToInt32(CIFLights[i].FlightSaterday) + Convert.ToInt32(CIFLights[i].FlightSunday));
                                 csvstoptimes.WriteField(String.Format("{0:HH:mm:ss}", CIFLights[i].ArrivalTime));
                                 csvstoptimes.WriteField(String.Format("{0:HH:mm:ss}", CIFLights[i].ArrivalTime));
                                 csvstoptimes.WriteField(CIFLights[i].ToIATA);
@@ -684,7 +687,7 @@ namespace CI_Satena
                                 int minute = CIFLights[i].ArrivalTime.Minute;
                                 string strminute = minute.ToString();
                                 if (strminute.Length == 1) { strminute = "0" + strminute; }
-                                csvstoptimes.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightNumber.Replace(" ", ""));
+                                csvstoptimes.WriteField(CIFLights[i].FromIATA + CIFLights[i].ToIATA + CIFLights[i].FlightAirline + CIFLights[i].FlightNumber.Replace(" ", "") + String.Format("{0:yyyyMMdd}", CIFLights[i].FromDate) + String.Format("{0:yyyyMMdd}", CIFLights[i].ToDate) + Convert.ToInt32(CIFLights[i].FlightMonday) + Convert.ToInt32(CIFLights[i].FlightTuesday) + Convert.ToInt32(CIFLights[i].FlightWednesday) + Convert.ToInt32(CIFLights[i].FlightThursday) + Convert.ToInt32(CIFLights[i].FlightFriday) + Convert.ToInt32(CIFLights[i].FlightSaterday) + Convert.ToInt32(CIFLights[i].FlightSunday));
                                 csvstoptimes.WriteField(hour + ":" + strminute + ":00");
                                 csvstoptimes.WriteField(hour + ":" + strminute + ":00");
                                 csvstoptimes.WriteField(CIFLights[i].ToIATA);
