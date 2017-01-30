@@ -361,26 +361,33 @@ namespace CI_Satena
 
                 var airlines = CIFLights.Select(m => new { m.FlightAirline }).Distinct().ToList();
 
-                //for (int i = 0; i < airlines.Count; i++) // Loop through List with for)
-                //{
-                    using (var client = new WebClient())
+                for (int i = 0; i < airlines.Count; i++) // Loop through List with for)
+                {
+                    string urlapi = ConfigurationManager.AppSettings.Get("APIUrl") + APIPathAirline + airlines[0].FlightAirline.Trim();
+                    string RequestAirlineJson = String.Empty;
+                    HttpWebRequest requestAirline = (HttpWebRequest)WebRequest.Create(urlapi);
+
+                    requestAirline.Method = "GET";
+                    requestAirline.UserAgent = ua;
+                    requestAirline.Accept = HeaderAccept;
+                    requestAirline.Proxy = null;
+                    requestAirline.KeepAlive = false;
+                    using (HttpWebResponse Airlineresponse = (HttpWebResponse)requestAirline.GetResponse())
+                    using (StreamReader reader = new StreamReader(Airlineresponse.GetResponseStream()))
                     {
-                        client.Encoding = Encoding.UTF8;
-                        client.Headers.Add("user-agent", ua);
-                        string urlapi = ConfigurationManager.AppSettings.Get("APIUrl") + APIPathAirline + airlines[0].FlightAirline.Trim();
-                        var jsonapi = client.DownloadString(urlapi);
-                        dynamic AirlineResponseJson = JsonConvert.DeserializeObject(jsonapi);
-                        csv.WriteField(Convert.ToString(AirlineResponseJson[0].code));
-                        csv.WriteField(Convert.ToString(AirlineResponseJson[0].name));
-                        csv.WriteField(Convert.ToString(AirlineResponseJson[0].website));
-                        csv.WriteField("America/Bogota");
-                        csv.WriteField("ES");
-                        csv.WriteField(Convert.ToString(AirlineResponseJson[0].phone));
-                        csv.WriteField("");
-                        csv.WriteField("");
-                        csv.NextRecord();                       
+                        RequestAirlineJson = reader.ReadToEnd();
                     }
-                //}
+                    dynamic AirlineResponseJson = JsonConvert.DeserializeObject(RequestAirlineJson);
+                    csv.WriteField(Convert.ToString(AirlineResponseJson[0].code));
+                    csv.WriteField(Convert.ToString(AirlineResponseJson[0].name));
+                    csv.WriteField(Convert.ToString(AirlineResponseJson[0].website));
+                    csv.WriteField("America/Bogota");
+                    csv.WriteField("ES");
+                    csv.WriteField(Convert.ToString(AirlineResponseJson[0].phone));
+                    csv.WriteField("");
+                    csv.WriteField("");
+                    csv.NextRecord();
+                }
             }
 
             Console.WriteLine("Creating GTFS File routes.txt ...");
