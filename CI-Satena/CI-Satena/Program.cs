@@ -92,6 +92,9 @@ namespace CI_Satena
             }
             //Fill in the form session
 
+            int FromDay = Convert.ToInt32(ConfigurationManager.AppSettings.Get("FromDay"));
+            int ToDay = Convert.ToInt32(ConfigurationManager.AppSettings.Get("ToDay"));
+
             foreach (var From in _AirportsFrom)
             {
                 foreach (var To in _AirportsTo)
@@ -104,7 +107,7 @@ namespace CI_Satena
 
                     if (From.IATA != To.IATA)
                     {
-                        for (int i = 0; i < 30; i++)
+                        for (int i = FromDay; i < ToDay; i++)
                         {
                             // Response Variables
                             string ResponseForm = String.Empty;
