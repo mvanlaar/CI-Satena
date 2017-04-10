@@ -93,10 +93,9 @@ namespace CI_Satena
             //Fill in the form session
 
             int FromDay = Convert.ToInt32(ConfigurationManager.AppSettings.Get("FromDay"));
-            int ToDay = Convert.ToInt32(ConfigurationManager.AppSettings.Get("ToDay"));
-
+            int ToDay = Convert.ToInt32(ConfigurationManager.AppSettings.Get("ToDay"));           
             foreach (var From in _AirportsFrom)
-            {
+            {                
                 foreach (var To in _AirportsTo)
                 {
                     //Parallel.ForEach(_AirportsTo, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (To) =>
@@ -116,9 +115,6 @@ namespace CI_Satena
                             string ResponseRoutes = String.Empty;
                             CookieContainer cookieContainer = new CookieContainer();
                             CookieCollection cookieCollection = new CookieCollection();
-
-                            
-
                             DateTime dateAndTime = DateTime.Now;
                             dateAndTime = dateAndTime.AddDays(i);
                             Console.WriteLine("{0} - {1} - {2}", From.Name, To.Name, dateAndTime.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture).ToString());
@@ -180,155 +176,183 @@ namespace CI_Satena
 
                             //Console.WriteLine("Post for days details...");
 
-                            //request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
-
-                            //var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
-                            //var dataDias = Encoding.ASCII.GetBytes(postDataDias);
-
-                            //request.Method = "POST";
-                            //request.ContentType = "application/x-www-form-urlencoded";
-                            //request.ContentLength = dataDias.Length;
-                            //request.UserAgent = ua;
-                            //request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
-                            //request.Headers.Add("Accept-Encoding", HeaderEncoding);
-                            //request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                            //request.Accept = "*/*";
-                            //request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                            //request.CookieContainer = cookieContainer;
-
-                            //using (var streamDias = request.GetRequestStream())
-                            //{
-                            //    streamDias.Write(dataDias, 0, dataDias.Length);
-                            //}
-                            //using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
-                            //using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
-                            //{
-                            //    ResponseDias = reader.ReadToEnd();
-                            //}
-                            // Parse Routes
-                            //Console.WriteLine("Post for route details...");
                             request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
 
-                            var postDataRoutes = String.Format("tipoViaje=ida&accion=getRespuesta");
-                            var dataRoutes = Encoding.ASCII.GetBytes(postDataRoutes);
+                            var postDataDias = String.Format("tipoViaje=ida&accion=getDias");
+                            var dataDias = Encoding.ASCII.GetBytes(postDataDias);
 
                             request.Method = "POST";
                             request.ContentType = "application/x-www-form-urlencoded";
-                            request.ContentLength = dataRoutes.Length;
+                            request.ContentLength = dataDias.Length;
                             request.UserAgent = ua;
                             request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
                             request.Headers.Add("Accept-Encoding", HeaderEncoding);
                             request.Headers.Add("X-Requested-With", "XMLHttpRequest");
-                            request.Accept = "*";
+                            request.Accept = "*/*";
                             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                             request.CookieContainer = cookieContainer;
-                            request.Proxy = null;
 
-                            using (var streamRoutes = request.GetRequestStream())
+                            using (var streamDias = request.GetRequestStream())
                             {
-                                streamRoutes.Write(dataRoutes, 0, dataRoutes.Length);
+                                streamDias.Write(dataDias, 0, dataDias.Length);
                             }
                             using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
                             using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
                             {
-                                ResponseRoutes = reader.ReadToEnd();
+                                ResponseDias = reader.ReadToEnd();
                             }
-                            // Parse Options
-                            if (!ResponseRoutes.Contains("No hay vuelos"))
+                            Boolean FlightToday = false;
+                            HtmlDocument HtmlDias = new HtmlDocument();
+                            HtmlDias.LoadHtml(ResponseDias);
+                            var DiasTable = HtmlDias.DocumentNode.SelectNodes("//div[@class='slideSemana']//tr//td");
+                            DateTime LastDay;
+                            foreach (var Dias in DiasTable)
                             {
-                                if (Convert.ToBoolean(ConfigurationManager.AppSettings.Get("Debug")))
+                                // Check if date is today
+                                string FlightDay = Dias.SelectSingleNode("//p[@class='fecha']").InnerText.ToString();
+                                Regex rgxdate1 = new Regex(@"(([0-9])|([0-2][0-9])|([3][0-1])) (Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)");
+                                LastDay = DateTime.ParseExact(rgxdate1.Matches(FlightDay)[0].Value, "dd MMM", new CultureInfo("es-CO"), DateTimeStyles.None);
+                                if (FlightDay.Contains(dateAndTime.ToString("DD")))
                                 {
-                                    using (StreamWriter writetext = new StreamWriter(myDirData + "\\" + From.IATA + " - " + To.IATA  + " - " + dateAndTime.ToString("yyyyMMdd") + ".txt"))
+                                    string FlightPossible = Dias.SelectSingleNode("//p[@class='disponibilidad']").InnerText.ToString();
+                                    // Agotado and Sin vuelo are no flights for FlightPossible - Disponible is possbile
+                                    if (FlightPossible.Contains("Disponible"))
                                     {
-                                        writetext.Write(ResponseRoutes);
+                                        FlightToday = true;
                                     }
-                                } 
-                                // Parsing Response Routes
-                                HtmlDocument HtmlRoutes = new HtmlDocument();
-                                HtmlRoutes.LoadHtml(ResponseRoutes);      
-                                var RouteTable = HtmlRoutes.DocumentNode.SelectNodes("//table[@class='tabla2']//tr");
-                                foreach (var Route in RouteTable)
-                                {
-                                    if (Route.SelectSingleNode("./td//div") != null)
-                                    {
-                                        // Check if route is direct or has a connection. only put direct routes in the gtfs feed.
-                                        string routename = Route.SelectSingleNode("./td[1]/div[2]/span[1]").InnerText.ToString();
-                                        if (routename.Contains(From.IATA) & routename.Contains(To.IATA))
-                                        {
-                                            // Direct Flight.
-                                            string FlightDeparture = Route.SelectSingleNode("./td[1]/div[1]/span[1]").InnerText.ToString();
-                                            string FlightArrival = Route.SelectSingleNode("./td[1]/div[1]/span[2]").InnerText.ToString();
-                                            string TEMP_FlightNumber = Route.SelectSingleNode("./td[1]/div[3]/span[1]").InnerText.ToString();
-                                            int start = TEMP_FlightNumber.IndexOf("(") + 1;
-                                            int end = TEMP_FlightNumber.IndexOf(")", start);
-                                            TEMP_FlightNumber = TEMP_FlightNumber.Substring(start, end - start);
-                                            Boolean TEMP_FlightMonday = false;
-                                            Boolean TEMP_FlightTuesday = false;
-                                            Boolean TEMP_FlightWednesday = false;
-                                            Boolean TEMP_FlightThursday = false;
-                                            Boolean TEMP_FlightFriday = false;
-                                            Boolean TEMP_FlightSaterday = false;
-                                            Boolean TEMP_FlightSunday = false;
-
-                                            int dayofweek = Convert.ToInt32(dateAndTime.DayOfWeek);
-                                            if (dayofweek == 0) { TEMP_FlightSunday = true; }
-                                            if (dayofweek == 1) { TEMP_FlightMonday = true; }
-                                            if (dayofweek == 2) { TEMP_FlightTuesday = true; }
-                                            if (dayofweek == 3) { TEMP_FlightWednesday = true; }
-                                            if (dayofweek == 4) { TEMP_FlightThursday = true; }
-                                            if (dayofweek == 5) { TEMP_FlightFriday = true; }
-                                            if (dayofweek == 6) { TEMP_FlightSaterday = true; }
-
-                                            // Add Flight to CIFlights
-                                            bool alreadyExists = CIFLights.Exists(x => x.FromIATA == From.IATA
-                                                && x.ToIATA == To.IATA
-                                                && x.FromDate == dateAndTime.Date
-                                                && x.ToDate == dateAndTime.Date
-                                                && x.FlightNumber == TEMP_FlightNumber
-                                                && x.ArrivalTime == DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture)
-                                                && x.DepartTime == DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture)
-                                                && x.FlightAirline == "9R"
-                                                && x.FlightMonday == TEMP_FlightMonday
-                                                && x.FlightTuesday == TEMP_FlightTuesday
-                                                && x.FlightWednesday == TEMP_FlightWednesday
-                                                && x.FlightThursday == TEMP_FlightThursday
-                                                && x.FlightFriday == TEMP_FlightFriday
-                                                && x.FlightSaterday == TEMP_FlightSaterday
-                                                && x.FlightSunday == TEMP_FlightSunday);
-
-
-                                            if (!alreadyExists)
-                                            {
-                                                // don't add flights that already exists
-                                                CIFLights.Add(new CIFLight
-                                                {
-                                                    FromIATA = From.IATA,
-                                                    ToIATA = To.IATA,
-                                                    FromDate = dateAndTime.Date,
-                                                    ToDate = dateAndTime.Date,
-                                                    ArrivalTime = DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture),
-                                                    DepartTime = DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture),
-                                                    //FlightAircraft = "A320",
-                                                    FlightAirline = "9R",
-                                                    FlightMonday = TEMP_FlightMonday,
-                                                    FlightTuesday = TEMP_FlightTuesday,
-                                                    FlightWednesday = TEMP_FlightWednesday,
-                                                    FlightThursday = TEMP_FlightThursday,
-                                                    FlightFriday = TEMP_FlightFriday,
-                                                    FlightSaterday = TEMP_FlightSaterday,
-                                                    FlightSunday = TEMP_FlightSunday,
-                                                    FlightNumber = TEMP_FlightNumber
-                                                    //FlightOperator = null,
-                                                    //FlightCodeShare = TEMP_FlightCodeShare,
-                                                    //FlightNextDayArrival = TEMP_FlightNextDayArrival,
-                                                    //FlightNextDays = TEMP_FlightNextDays
-                                                });
-                                            }
-                                        }
-                                    }
-
                                 }
                             }
+                                
+                            if (FlightToday)
+                            { 
+                                // Parse Routes
+                                //Console.WriteLine("Post for route details...");
+                                request = (HttpWebRequest)WebRequest.Create("https://secure.kiusys.net/satena-ibe/resultados.php");
+
+
+
+                                var postDataRoutes = String.Format("tipoViaje=ida&accion=getRespuesta");
+                                var dataRoutes = Encoding.ASCII.GetBytes(postDataRoutes);
+
+                                request.Method = "POST";
+                                request.ContentType = "application/x-www-form-urlencoded";
+                                request.ContentLength = dataRoutes.Length;
+                                request.UserAgent = ua;
+                                request.Referer = "https://secure.kiusys.net/satena-ibe/resultados.php";
+                                request.Headers.Add("Accept-Encoding", HeaderEncoding);
+                                request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+                                request.Accept = "*";
+                                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                                request.CookieContainer = cookieContainer;
+                                request.Proxy = null;
+
+                                using (var streamRoutes = request.GetRequestStream())
+                                {
+                                    streamRoutes.Write(dataRoutes, 0, dataRoutes.Length);
+                                }
+                                using (HttpWebResponse responseIndex = (HttpWebResponse)request.GetResponse())
+                                using (StreamReader reader = new StreamReader(responseIndex.GetResponseStream()))
+                                {
+                                    ResponseRoutes = reader.ReadToEnd();
+                                }
+                                    // Parse Options
+                                    if (!ResponseRoutes.Contains("No hay vuelos"))
+                                    {
+                                        if (Convert.ToBoolean(ConfigurationManager.AppSettings.Get("Debug")))
+                                        {
+                                            using (StreamWriter writetext = new StreamWriter(myDirData + "\\" + From.IATA + " - " + To.IATA + " - " + dateAndTime.ToString("yyyyMMdd") + ".txt"))
+                                            {
+                                                writetext.Write(ResponseRoutes);
+                                            }
+                                        }
+                                        // Parsing Response Routes
+                                        HtmlDocument HtmlRoutes = new HtmlDocument();
+                                        HtmlRoutes.LoadHtml(ResponseRoutes);
+                                        var RouteTable = HtmlRoutes.DocumentNode.SelectNodes("//table[@class='tabla2']//tr");
+                                        foreach (var Route in RouteTable)
+                                        {
+                                            if (Route.SelectSingleNode("./td//div") != null)
+                                            {
+                                                // Check if route is direct or has a connection. only put direct routes in the gtfs feed.
+                                                string routename = Route.SelectSingleNode("./td[1]/div[2]/span[1]").InnerText.ToString();
+                                                if (routename.Contains(From.IATA) & routename.Contains(To.IATA))
+                                                {
+                                                    // Direct Flight.
+                                                    string FlightDeparture = Route.SelectSingleNode("./td[1]/div[1]/span[1]").InnerText.ToString();
+                                                    string FlightArrival = Route.SelectSingleNode("./td[1]/div[1]/span[2]").InnerText.ToString();
+                                                    string TEMP_FlightNumber = Route.SelectSingleNode("./td[1]/div[3]/span[1]").InnerText.ToString();
+                                                    int start = TEMP_FlightNumber.IndexOf("(") + 1;
+                                                    int end = TEMP_FlightNumber.IndexOf(")", start);
+                                                    TEMP_FlightNumber = TEMP_FlightNumber.Substring(start, end - start);
+                                                    Boolean TEMP_FlightMonday = false;
+                                                    Boolean TEMP_FlightTuesday = false;
+                                                    Boolean TEMP_FlightWednesday = false;
+                                                    Boolean TEMP_FlightThursday = false;
+                                                    Boolean TEMP_FlightFriday = false;
+                                                    Boolean TEMP_FlightSaterday = false;
+                                                    Boolean TEMP_FlightSunday = false;
+
+                                                    int dayofweek = Convert.ToInt32(dateAndTime.DayOfWeek);
+                                                    if (dayofweek == 0) { TEMP_FlightSunday = true; }
+                                                    if (dayofweek == 1) { TEMP_FlightMonday = true; }
+                                                    if (dayofweek == 2) { TEMP_FlightTuesday = true; }
+                                                    if (dayofweek == 3) { TEMP_FlightWednesday = true; }
+                                                    if (dayofweek == 4) { TEMP_FlightThursday = true; }
+                                                    if (dayofweek == 5) { TEMP_FlightFriday = true; }
+                                                    if (dayofweek == 6) { TEMP_FlightSaterday = true; }
+
+                                                    // Add Flight to CIFlights
+                                                    bool alreadyExists = CIFLights.Exists(x => x.FromIATA == From.IATA
+                                                        && x.ToIATA == To.IATA
+                                                        && x.FromDate == dateAndTime.Date
+                                                        && x.ToDate == dateAndTime.Date
+                                                        && x.FlightNumber == TEMP_FlightNumber
+                                                        && x.ArrivalTime == DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture)
+                                                        && x.DepartTime == DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture)
+                                                        && x.FlightAirline == "9R"
+                                                        && x.FlightMonday == TEMP_FlightMonday
+                                                        && x.FlightTuesday == TEMP_FlightTuesday
+                                                        && x.FlightWednesday == TEMP_FlightWednesday
+                                                        && x.FlightThursday == TEMP_FlightThursday
+                                                        && x.FlightFriday == TEMP_FlightFriday
+                                                        && x.FlightSaterday == TEMP_FlightSaterday
+                                                        && x.FlightSunday == TEMP_FlightSunday);
+
+
+                                                    if (!alreadyExists)
+                                                    {
+                                                        // don't add flights that already exists
+                                                        CIFLights.Add(new CIFLight
+                                                        {
+                                                            FromIATA = From.IATA,
+                                                            ToIATA = To.IATA,
+                                                            FromDate = dateAndTime.Date,
+                                                            ToDate = dateAndTime.Date,
+                                                            ArrivalTime = DateTime.ParseExact(FlightArrival, "HH:mm", CultureInfo.InvariantCulture),
+                                                            DepartTime = DateTime.ParseExact(FlightDeparture, "HH:mm", CultureInfo.InvariantCulture),
+                                                            //FlightAircraft = "A320",
+                                                            FlightAirline = "9R",
+                                                            FlightMonday = TEMP_FlightMonday,
+                                                            FlightTuesday = TEMP_FlightTuesday,
+                                                            FlightWednesday = TEMP_FlightWednesday,
+                                                            FlightThursday = TEMP_FlightThursday,
+                                                            FlightFriday = TEMP_FlightFriday,
+                                                            FlightSaterday = TEMP_FlightSaterday,
+                                                            FlightSunday = TEMP_FlightSunday,
+                                                            FlightNumber = TEMP_FlightNumber
+                                                            //FlightOperator = null,
+                                                            //FlightCodeShare = TEMP_FlightCodeShare,
+                                                            //FlightNextDayArrival = TEMP_FlightNextDayArrival,
+                                                            //FlightNextDays = TEMP_FlightNextDays
+                                                        });
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+                                // End flight today checking
                         }
                     }
                     //});
