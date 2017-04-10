@@ -238,7 +238,7 @@ namespace CI_Satena
                             {
                                 if (Convert.ToBoolean(ConfigurationManager.AppSettings.Get("Debug")))
                                 {
-                                    using (StreamWriter writetext = new StreamWriter(myDirData + "\\" + To.IATA + " - " + From.IATA + " - " + dateAndTime.ToString("yyyyMMdd") + ".txt"))
+                                    using (StreamWriter writetext = new StreamWriter(myDirData + "\\" + From.IATA + " - " + To.IATA  + " - " + dateAndTime.ToString("yyyyMMdd") + ".txt"))
                                     {
                                         writetext.Write(ResponseRoutes);
                                     }
